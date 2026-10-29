@@ -24,20 +24,39 @@
  * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
  * than to the address resulting from executing the current instruction. 
  */
-
 CHIP CPU {
-
     IN  inM[16],         // M value input  (M = contents of RAM[A])
         instruction[16], // Instruction for execution
         reset;           // Signals whether to re-start the current
                          // program (reset==1) or continue executing
                          // the current program (reset==0).
-
     OUT outM[16],        // M value output
-        writeM,          // Write to M? 
-        addressM[15],    // Address in data memory (of M)
+        writeM,          // Write to M?
+        addressM[15],    // Address in data memory (to M)
         pc[15];          // address of next instruction
-
     PARTS:
-    // Put your code here:
+    Not(in=instruction[15], out=isA);
+    Not(in=isA, out=isC);
+    And(a=isC, b=instruction[5], out=isCAndD1);
+    Or(a=isA, b=isCAndD1, out=loadA);
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=inA);
+    ARegister(in=inA, load=loadA, out=aOut, out[0..14]=addressM);
+    And(a=isC, b=instruction[4], out=loadD);
+    DRegister(in=aluOut, load=loadD, out=dOut);
+    Mux16(a=aOut, b=inM, sel=instruction[12], out=aluY);
+    ALU(x=dOut, y=aluY, 
+        zx=instruction[11], nx=instruction[10], 
+        zy=instruction[9],  ny=instruction[8], 
+        f=instruction[7],   no=instruction[6], 
+        out=aluOut, out=outM, zr=zr, ng=ng);
+    And(a=isC, b=instruction[3], out=writeM);
+    Or(a=zr, b=ng, out=zrOrNg);
+    Not(in=zrOrNg, out=pos); // 判斷是否為大於 0 的正數
+    And(a=instruction[2], b=ng, out=j1AndNg);   // J1 (<0) & ng
+    And(a=instruction[1], b=zr, out=j2AndZr);   // J2 (==0) & zr
+    And(a=instruction[0], b=pos, out=j3AndPos); // J3 (>0) & pos
+    Or(a=j1AndNg, b=j2AndZr, out=j12);
+    Or(a=j12, b=j3AndPos, out=jumpCond);
+    And(a=isC, b=jumpCond, out=loadPC);
+    PC(in=aOut, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
 }
