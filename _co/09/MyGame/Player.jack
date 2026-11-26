@@ -1,0 +1,59 @@
+/** 玩家控制的方塊 */
+class Player {
+    field int x, y; // 左上角座標
+    field int size; // 方塊邊長
+
+    /** 建構子：初始化玩家位置並畫在螢幕上 */
+    constructor Player new(int Ax, int Ay, int Asize) {
+        let x = Ax;
+        let y = Ay;
+        let size = Asize;
+        do draw();
+        return this;
+    }
+
+    /** 釋放記憶體 */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** 畫出玩家（黑色） */
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+        return;
+    }
+
+    /** 擦除玩家（白色） */
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+        return;
+    }
+
+    /** 向左移動（限制不超出螢幕左邊界 0） */
+    method void moveLeft() {
+        if (x > 4) {
+            do erase();
+            let x = x - 4;
+            do draw();
+        }
+        return;
+    }
+
+    /** 向右移動（限制不超出螢幕右邊界 511） */
+    method void moveRight() {
+        if ((x + size) < 507) {
+            do erase();
+            let x = x + 4;
+            do draw();
+        }
+        return;
+    }
+
+    /** 取得座標供碰撞偵測使用 */
+    method int getX() { return x; }
+    method int getY() { return y; }
+    method int getSize() { return size; }
+}

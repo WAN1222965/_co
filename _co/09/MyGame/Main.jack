@@ -1,0 +1,10 @@
+/** 閃避遊戲程式進入點 */
+class Main {
+    function void main() {
+        var DodgeGame game;
+        let game = DodgeGame.new();
+        do game.run();
+        do game.dispose();
+        return;
+    }
+}
